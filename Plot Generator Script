@@ -1,0 +1,49 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def generate_period_vs_depth_plot(csv_path="tess_exoplanet_validation_logbook.csv"):
+    """
+    Generates a high-resolution Period vs Depth scatter plot categorized by reliability tiers.
+    """
+    print(f"[INFO] Loading logbook from {csv_path}...")
+    try:
+        df = pd.read_csv(csv_path)
+    except FileNotFoundError:
+        print(f"[ERROR] File '{csv_path}' not found. Run main_triage_pipeline.py first.")
+        return
+
+    # Identify dynamic column names
+    x_col = 'period' if 'period' in df.columns else df.columns[1]
+    y_col = 'depth_ppm' if 'depth_ppm' in df.columns else ('depth' if 'depth' in df.columns else df.columns[2])
+    hue_col = 'tier' if 'tier' in df.columns else None
+
+    plt.figure(figsize=(10, 6), dpi=300)
+    sns.set_theme(style="whitegrid")
+
+    sns.scatterplot(
+        data=df,
+        x=x_col,
+        y=y_col,
+        hue=hue_col,
+        palette="deep",
+        s=70,
+        alpha=0.8,
+        edgecolor="w"
+    )
+
+    plt.title("TESS Candidate Population: Orbital Period vs. Transit Depth", fontsize=14, fontweight='bold', pad=15)
+    plt.xlabel("Orbital Period (Days)", fontsize=12)
+    plt.ylabel("Transit Depth (ppm)", fontsize=12)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Reliability Tiers")
+    plt.tight_layout()
+
+    plot_output = "period_vs_depth_plot.png"
+    plt.savefig(plot_output, dpi=300)
+    print(f"[SUCCESS] Plot generated and saved as '{plot_output}'.")
+    plt.close()
+
+if __name__ == "__main__":
+    generate_period_vs_depth_plot()
