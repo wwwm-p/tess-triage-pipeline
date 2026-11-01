@@ -61,7 +61,7 @@ Installation & Usage
 
 1. Clone the Repository
 
-git clone https://github.com/wwwm-p/tess-exoplanet-triage-pipeline.git
+git clone https://github.com/wwwm-p/tess-triage-pipeline.git
 cd tess-exoplanet-triage-pipeline
 
 
