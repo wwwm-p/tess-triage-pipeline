@@ -1,0 +1,62 @@
+import pandas as pd
+import requests
+import time
+
+def fetch_exofop_toi_data():
+    """
+    Queries the ExoFOP API to pull the latest TESS Objects of Interest (TOI) table.
+    """
+    print("[INFO] Querying ExoFOP API for TESS Objects of Interest (TOI)...")
+    url = "https://exofop.ipac.caltech.edu/tess/download_toi.php?sort=toi&output=csv"
+    try:
+        df = pd.read_csv(url)
+        print(f"[SUCCESS] Downloaded {len(df)} TOI records from ExoFOP.")
+        return df
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch ExoFOP data: {e}")
+        return None
+
+def process_triage_tiers(df):
+    """
+    Categorizes candidate targets into actionable reliability tiers based on
+    multiplicity and disposition flags.
+    """
+    print("[INFO] Running triage classification algorithm...")
+    
+    # Normalize column headers
+    df.columns = [c.lower().strip().replace(' ', '_') for c in df.columns]
+    
+    # Identify target multiplicity (count candidates per TIC ID)
+    tic_counts = df['tic_id'].value_counts()
+    df['candidate_count'] = df['tic_id'].map(tic_counts)
+    
+    def assign_tier(row):
+        disp = str(row.get('tfopwg_disposition', '')).upper()
+        multiplicity = row.get('candidate_count', 1)
+        
+        if disp == 'CP':
+            return 'Tier 1: Confirmed Planet'
+        elif disp == 'FP' or disp == 'FA':
+            return 'Tier 4: False Positive / Deprioritize'
+        elif multiplicity > 1 and disp in ['PC', 'APC']:
+            return 'Tier 2: High-Priority Multi-Planet Candidate'
+        else:
+            return 'Tier 3: Single Candidate (Manual Review)'
+
+    df['tier'] = df.apply(assign_tier, axis=1)
+    return df
+
+def generate_logbook(df, output_path="tess_exoplanet_validation_logbook.csv"):
+    """
+    Exports clean, tiered targets to CSV format.
+    """
+    cols_to_keep = [c for c in ['tic_id', 'toi', 'tfopwg_disposition', 'tier', 'period', 'depth_ppm', 'candidate_count'] if c in df.columns]
+    output_df = df[cols_to_keep] if cols_to_keep else df
+    output_df.to_csv(output_path, index=False)
+    print(f"[SUCCESS] Logbook generated and saved to '{output_path}'.")
+
+if __name__ == "__main__":
+    toi_df = fetch_exofop_toi_data()
+    if toi_df is not None:
+        processed_df = process_triage_tiers(toi_df)
+        generate_logbook(processed_df)
