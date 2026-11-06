@@ -87,3 +87,4 @@ Ricker, G. R., et al. (2015). Transiting Exoplanet Survey Satellite (TESS). JATI
 Guerrero, N. M., et al. (2021). The TESS Objects of Interest Catalog from the Prime Mission. ApJS, 254(2), 39.
 
 Lissauer, J. J., et al. (2012). Almost All of Kepler's Multiple-Planet Candidates Are Valid Planets. ApJ, 750(2), 112.
+* Disclaimer most work not done here and done on google collab final draft and working code is what was uploaded to this repository trial and error went into writing this code.
